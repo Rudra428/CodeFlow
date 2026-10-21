@@ -1,4 +1,4 @@
-const IDE_URL = "http://localhost:5173/";
+const IDE_URL = "https://code-flow-rho-lemon.vercel.app/";
 
 function parseProblemUrl(url) {
   const parsed = new URL(url);

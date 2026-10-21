@@ -18,6 +18,7 @@
   "host_permissions": [
     "https://codeforces.com/*",
     "https://www.codeforces.com/*",
+    "https://code-flow-rho-lemon.vercel.app/*",
     "http://localhost:5173/*"
   ],
   "background": {
@@ -35,6 +36,7 @@
   "content_scripts": [
     {
       "matches": [
+        "https://code-flow-rho-lemon.vercel.app/*",
         "http://localhost:5173/*"
       ],
       "js": [

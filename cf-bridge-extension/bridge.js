@@ -1,7 +1,11 @@
-const IDE_ORIGIN = "http://localhost:5173";
+const IDE_ORIGINS = new Set([
+  "http://localhost:5173",
+  "https://code-flow-rho-lemon.vercel.app"
+]);
 
 window.addEventListener("message", async (event) => {
-  if (event.source !== window || event.origin !== IDE_ORIGIN || !event.data) return;
+  if (event.source !== window || !IDE_ORIGINS.has(event.origin) || !event.data) return;
+  const ideOrigin = event.origin;
 
   if (event.data.type === "LOAD_CF_PROBLEM") {
     const key = String(event.data.key || "");
@@ -12,9 +16,9 @@ window.addEventListener("message", async (event) => {
         type: "CF_PROBLEM_LOADED",
         key,
         problem: stored[`cf_prob_${key}`] || null
-      }, IDE_ORIGIN);
+      }, ideOrigin);
     } catch (error) {
-      window.postMessage({ type: "CF_BRIDGE_ERROR", error: error.message }, IDE_ORIGIN);
+      window.postMessage({ type: "CF_BRIDGE_ERROR", error: error.message }, ideOrigin);
     }
   }
 
@@ -24,14 +28,14 @@ window.addEventListener("message", async (event) => {
         type: "CF_SUBMIT_CODE",
         ...event.data.payload
       });
-      window.postMessage({ type: "CF_SUBMIT_RESULT", requestId: event.data.requestId, ...response }, IDE_ORIGIN);
+      window.postMessage({ type: "CF_SUBMIT_RESULT", requestId: event.data.requestId, ...response }, ideOrigin);
     } catch (error) {
       window.postMessage({
         type: "CF_SUBMIT_RESULT",
         requestId: event.data.requestId,
         ok: false,
         error: error.message
-      }, IDE_ORIGIN);
+      }, ideOrigin);
     }
   }
 });

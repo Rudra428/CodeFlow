@@ -43,7 +43,7 @@ Push the project to GitHub, then create two services from the same repository:
 ### Backend on Render
 
 1. In Render, create a **Blueprint** using this repository and approve the `render.yaml` configuration.
-2. When prompted for `FRONTEND_ORIGINS`, enter `http://localhost:5173` temporarily. You can replace it with the Vercel production origin after the frontend is deployed.
+2. When prompted for `FRONTEND_ORIGINS`, enter your exact Vercel production origin (currently `https://code-flow-rho-lemon.vercel.app`, with no trailing slash).
 3. Keep `ENABLE_LOCAL_EXECUTION` set to `false`. The backend uses Judge0 CE; it does not run submitted programs on the Render machine.
 4. Wait for the `codeflow-api` service to deploy and copy its Render URL, such as `https://codeflow-api.onrender.com`.
 
@@ -52,9 +52,9 @@ Push the project to GitHub, then create two services from the same repository:
 1. Import the same GitHub repository in Vercel and set **Root Directory** to `frontend`.
 2. Vercel should detect Vite. Use `npm run build` as the build command and `dist` as the output directory if it does not fill them automatically.
 3. Add the environment variable `VITE_BACKEND_URL` with the Render service URL (for example, `https://codeflow-api.onrender.com`, without a trailing slash), then deploy or redeploy.
-4. In the Render service's environment settings, replace `FRONTEND_ORIGINS` with the exact Vercel production origin (no trailing slash) and save the change to redeploy/restart the backend.
+4. If your Vercel production domain changes, update Render's `FRONTEND_ORIGINS` to the new exact origin and save the change to redeploy/restart the backend.
 
-The unpacked Codeforces browser extension currently targets `http://localhost:5173`. To use Codeforces problem import and submission with the hosted frontend, update the extension's allowed site origin to the final Vercel production URL before loading the extension. Avoid allowing arbitrary Vercel domains; only add your exact production origin.
+The Codeforces browser extension opens `https://code-flow-rho-lemon.vercel.app` and allows messages only from that exact origin or `http://localhost:5173` for development. If your Vercel production domain changes, update the extension's `IDE_URL`, `IDE_ORIGINS`, and manifest host/content-script matches to the new exact origin. Avoid allowing arbitrary Vercel domains.
 
 ## Load the Chrome extension
 
