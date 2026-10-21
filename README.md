@@ -1,6 +1,6 @@
 # CodeFlow
 
-CodeFlow is a local React/Monaco coding workspace, a Manifest V3 Chrome bridge for importing Codeforces samples and submitting through your signed-in browser session, and a Flask service that runs C++, Python 3, and Java 17 solutions locally or with Judge0 CE.
+CodeFlow is a React/Monaco coding workspace, a Manifest V3 Chrome bridge for importing Codeforces samples and submitting through your signed-in browser session, and a Flask API that runs C++, Python 3, and Java 17 solutions with Judge0 CE.
 
 ## Requirements
 
@@ -36,6 +36,26 @@ python app.py
 
 The API listens on `http://127.0.0.1:5000`. If PowerShell blocks activation, run `python -m pip install -r requirements.txt` with the environment's Python directly instead.
 
+## Deploy frontend and API
+
+Push the project to GitHub, then create two services from the same repository:
+
+### Backend on Render
+
+1. In Render, create a **Blueprint** using this repository and approve the `render.yaml` configuration.
+2. When prompted for `FRONTEND_ORIGINS`, enter `http://localhost:5173` temporarily. You can replace it with the Vercel production origin after the frontend is deployed.
+3. Keep `ENABLE_LOCAL_EXECUTION` set to `false`. The backend uses Judge0 CE; it does not run submitted programs on the Render machine.
+4. Wait for the `codeflow-api` service to deploy and copy its Render URL, such as `https://codeflow-api.onrender.com`.
+
+### Frontend on Vercel
+
+1. Import the same GitHub repository in Vercel and set **Root Directory** to `frontend`.
+2. Vercel should detect Vite. Use `npm run build` as the build command and `dist` as the output directory if it does not fill them automatically.
+3. Add the environment variable `VITE_BACKEND_URL` with the Render service URL (for example, `https://codeflow-api.onrender.com`, without a trailing slash), then deploy or redeploy.
+4. In the Render service's environment settings, replace `FRONTEND_ORIGINS` with the exact Vercel production origin (no trailing slash) and save the change to redeploy/restart the backend.
+
+The unpacked Codeforces browser extension currently targets `http://localhost:5173`. To use Codeforces problem import and submission with the hosted frontend, update the extension's allowed site origin to the final Vercel production URL before loading the extension. Avoid allowing arbitrary Vercel domains; only add your exact production origin.
+
 ## Load the Chrome extension
 
 1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge) and enable **Developer mode**.
@@ -56,7 +76,7 @@ The extension supports `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{inde
 
 ## Configuration and operational safety
 
-Set `VITE_BACKEND_URL` when building/running the frontend if the API is hosted somewhere other than `http://localhost:5000`. The Flask service accepts CORS requests only from `http://localhost:5173`.
+Set `VITE_BACKEND_URL` when building/running the frontend if the API is hosted somewhere other than `http://localhost:5000`. The Flask service allows the origin or comma-separated origins configured in `FRONTEND_ORIGINS`; by default this is `http://localhost:5173`.
 
 Use **Judge0 CE (online)** in the IDE's **Run code with** dropdown and select the language. C++ is the default language and execution mode. Local execution is temporarily disabled. To re-enable it for a trusted, private deployment, set `ENABLE_LOCAL_EXECUTION=true` on the Flask backend; local code runs with the permissions of the backend process. Judge0 discovers the newest available GCC C++, Python 3, and Java runtime. By default, it uses the public `https://ce.judge0.com` instance; set `JUDGE0_BASE_URL` to use another Judge0 CE instance. Set `JUDGE0_CPP_LANGUAGE_ID`, `JUDGE0_PYTHON_LANGUAGE_ID`, or `JUDGE0_JAVA_LANGUAGE_ID` to pin a runtime.
 

@@ -25,6 +25,11 @@ MAX_PARALLEL_TESTS = 4
 MAX_PARALLEL_DIAGNOSTICS = 2
 JUDGE0_BASE_URL = os.environ.get("JUDGE0_BASE_URL", "https://ce.judge0.com").rstrip("/")
 LOCAL_EXECUTION_ENABLED = os.environ.get("ENABLE_LOCAL_EXECUTION", "").strip().lower() in ("1", "true", "yes")
+FRONTEND_ORIGINS = tuple(
+    origin.strip()
+    for origin in os.environ.get("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+    if origin.strip()
+)
 JUDGE0_LANGUAGE_ID = os.environ.get("JUDGE0_LANGUAGE_ID")
 JUDGE0_LANGUAGE_IDS = {
     "cpp": os.environ.get("JUDGE0_CPP_LANGUAGE_ID", JUDGE0_LANGUAGE_ID),
@@ -49,7 +54,7 @@ DIAGNOSTIC_SLOTS = threading.BoundedSemaphore(MAX_PARALLEL_DIAGNOSTICS)
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_BYTES
-CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}})
+CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
 
 
 def error_response(message, status):
