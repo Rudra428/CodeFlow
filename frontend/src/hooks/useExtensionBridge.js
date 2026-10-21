@@ -8,26 +8,54 @@ export function useExtensionBridge() {
   const problemKey = new URLSearchParams(window.location.search).get("problem");
 
   useEffect(() => {
+    if (!problemKey) return undefined;
+
+    const requestId = globalThis.crypto?.randomUUID?.()
+      || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    let requestTimer;
+    let settled = false;
+    let attempts = 0;
+
     const handleMessage = (event) => {
       if (event.source !== window || event.origin !== window.location.origin) return;
       const data = event.data;
-      if (data?.type === "CF_PROBLEM_LOADED") {
-        setProblem(data.problem);
-        if (!data.problem) setBridgeError("No saved problem was found. Open a Codeforces problem and click the extension icon.");
-      } else if (data?.type === "CF_BRIDGE_ERROR") {
-        setBridgeError(data.error || "The extension could not load this problem.");
-      } else if (data?.type === "CF_SUBMIT_RESULT") {
+      if (data?.type === "CF_SUBMIT_RESULT") {
         const resolve = pendingRef.current.get(data.requestId);
         if (resolve) {
           pendingRef.current.delete(data.requestId);
           resolve(data);
         }
+        return;
+      }
+      if (data?.requestId !== requestId) return;
+      if (data?.type === "CF_PROBLEM_LOADED") {
+        settled = true;
+        window.clearTimeout(requestTimer);
+        setProblem(data.problem);
+        if (!data.problem) setBridgeError("No saved problem was found. Open a Codeforces problem and click the extension icon.");
+      } else if (data?.type === "CF_BRIDGE_ERROR") {
+        settled = true;
+        window.clearTimeout(requestTimer);
+        setBridgeError(data.error || "The extension could not load this problem.");
       }
     };
 
+    const requestProblem = () => {
+      if (settled) return;
+      attempts += 1;
+      window.postMessage({ type: "LOAD_CF_PROBLEM", key: problemKey, requestId }, window.location.origin);
+      if (attempts >= 20) {
+        setBridgeError("The CodeFlow extension did not respond. Check that it is enabled for this site, then reload the page.");
+        return;
+      }
+      requestTimer = window.setTimeout(requestProblem, 250);
+    };
+
     window.addEventListener("message", handleMessage);
-    if (problemKey) window.postMessage({ type: "LOAD_CF_PROBLEM", key: problemKey }, window.location.origin);
+    requestProblem();
     return () => {
+      settled = true;
+      window.clearTimeout(requestTimer);
       window.removeEventListener("message", handleMessage);
       pendingRef.current.forEach((resolve) => resolve({ ok: false, error: "IDE was closed." }));
       pendingRef.current.clear();

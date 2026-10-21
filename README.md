@@ -56,6 +56,8 @@ Push the project to GitHub, then create two services from the same repository:
 
 The Codeforces browser extension opens `https://code-flow-rho-lemon.vercel.app` and allows messages only from that exact origin or `http://localhost:5173` for development. If your Vercel production domain changes, update the extension's `IDE_URL`, `IDE_ORIGINS`, and manifest host/content-script matches to the new exact origin. Avoid allowing arbitrary Vercel domains.
 
+When a problem link opens the IDE, the IDE retries the extension handshake briefly to tolerate slow content-script startup. If it still reports that the extension did not respond, confirm the extension is enabled and has site access for the Vercel domain, reload the extension from `chrome://extensions` (or `edge://extensions`), then reopen the problem from Codeforces.
+
 ## Load the Chrome extension
 
 1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge) and enable **Developer mode**.
