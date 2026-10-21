@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e5eaf4;
+  background: #090e1a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 760px; min-height: 100vh; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+
+.app-shell { height: 100vh; min-height: 600px; display: flex; flex-direction: column; background: #090e1a; }
+.topbar { min-height: 76px; display: flex; align-items: center; gap: 24px; padding: 12px 22px; background: #111827; border-bottom: 1px solid #263246; }
+.brand { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 700; white-space: nowrap; }
+.brand-mark { display: block; width: 32px; height: 32px; border-radius: 9px; }
+.problem-meta { min-width: 150px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.problem-meta strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.problem-meta span, .muted { color: #8996aa; font-size: 11px; }
+.topbar-actions { display: flex; align-items: center; gap: 9px; }
+textarea:focus { border-color: #3b82f6; }
+.execution-field { display: flex; flex-direction: column; gap: 3px; color: #8996aa; font-size: 10px; }
+.execution-field select { width: 132px; height: 30px; padding: 0 7px; border: 1px solid #344157; border-radius: 5px; background: #0d1422; color: #e5eaf4; outline: none; font-size: 10px; }
+.execution-field select:focus { border-color: #3b82f6; }
+.button { border: 1px solid transparent; border-radius: 5px; padding: 8px 11px; color: #e5eaf4; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.button-muted { background: #1c2738; border-color: #344157; }
+.button-primary { background: #2563eb; }
+.button-submit { background: #16865d; }
+.button-danger { color: #fca5a5; background: #351c27; border-color: #57313d; }
+.button-small { padding: 5px 8px; font-size: 10px; }
+.button-row { display: flex; align-items: center; gap: 7px; }
+.verdict-pill { display: flex; align-items: center; gap: 7px; max-width: 210px; color: #9aa7ba; font-size: 10px; }
+.verdict-pill > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verdict-dot { width: 7px; height: 7px; border-radius: 50%; background: #697589; flex: none; }
+.verdict-accepted .verdict-dot { background: #34d399; }
+.verdict-rejected .verdict-dot, .verdict-error .verdict-dot { background: #fb7185; }
+.verdict-testing .verdict-dot { background: #fbbf24; }
+.notice { padding: 8px 20px; color: #fcd34d; background: #292313; border-bottom: 1px solid #493a16; font-size: 12px; }
+.workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(390px, 43%); }
+.editor-section { min-width: 0; min-height: 0; border-right: 1px solid #263246; }
+.editor-frame { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.monaco-shell { flex: 1; min-height: 0; }
+.pane-heading { height: 36px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; color: #98a5b8; background: #111827; border-bottom: 1px solid #263246; font-size: 11px; }
+.editor-heading-status { display: flex; gap: 10px; align-items: center; }
+.diagnostics-checking { color: #fbbf24; }
+.diagnostics-unavailable { color: #fb7185; }
+.tests-panel { min-height: 0; display: flex; flex-direction: column; background: #0c1220; }
+.tests-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; border-bottom: 1px solid #263246; }
+.tests-toolbar h2 { margin: 0 0 3px; font-size: 13px; }
+.test-list { overflow: auto; padding: 11px; }
+.test-card { margin-bottom: 11px; border: 1px solid #263246; border-radius: 7px; background: #111827; }
+.test-card-heading { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-bottom: 1px solid #263246; }
+.test-card-title { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.status-badge { min-width: 32px; padding: 3px 5px; border-radius: 4px; text-align: center; font-size: 9px; font-weight: 800; }
+.badge-ac { color: #6ee7b7; background: #123a32; }
+.badge-wa { color: #fda4af; background: #421f2b; }
+.badge-tle { color: #fcd34d; background: #3c3217; }
+.badge-re { color: #c4b5fd; background: #30234c; }
+.badge-idle { color: #9aa7ba; background: #202b3a; }
+.io-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "input input" "actual expected" "stderr stderr"; gap: 9px; padding: 10px; }
+.io-input { grid-area: input; }
+.io-expected { grid-area: expected; }
+.io-actual { grid-area: actual; }
+.io-stderr { grid-area: stderr; }
+.io-grid label { min-width: 0; display: flex; flex-direction: column; gap: 5px; color: #98a5b8; font-size: 10px; }
+.io-grid textarea, .output-box { width: 100%; height: 82px; margin: 0; padding: 7px; overflow: auto; resize: vertical; border: 1px solid #2b384c; border-radius: 4px; outline: none; background: #0a101c; color: #dce4ef; font: 11px/1.45 "Cascadia Code", Consolas, monospace; white-space: pre-wrap; }
+.output-box { color: #aebbd0; }
+.io-actual .output-box, .io-expected textarea { height: 120px; min-height: 100px; }
+.stderr-console { height: 180px; min-height: 150px; }
+.diff-box { display: flex; flex-direction: column; gap: 3px; margin: 0 10px 10px; padding: 8px; border-left: 2px solid #fb7185; background: #251820; color: #fda4af; font-size: 10px; }
+.diff-box span { color: #ad8c98; }
+.diff-content { max-height: 120px; margin: 3px 0 0; overflow: auto; color: #d9aeb6; font: 10px/1.5 "Cascadia Code", Consolas, monospace; white-space: pre-wrap; }
+.diff-content span { display: block; color: inherit; }
+.diff-content .diff-line-changed { color: #fda4af; }
+.empty-state { padding: 28px 14px; text-align: center; color: #78869c; font-size: 12px; }
+.statusbar { display: flex; justify-content: space-between; padding: 7px 14px; border-top: 1px solid #263246; color: #748198; background: #111827; font-size: 10px; }
+
+@media (max-width: 1100px) {
+  .topbar { gap: 12px; padding-inline: 12px; }
+  .topbar-actions { gap: 6px; }
+  .verdict-pill { max-width: 130px; }
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(340px, 45%); }
+}
