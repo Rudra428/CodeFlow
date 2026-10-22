@@ -1,0 +1,4 @@
+-r requirements.txt
+waitress>=3,<4
+pystray>=0.19,<1
+Pillow>=10,<13

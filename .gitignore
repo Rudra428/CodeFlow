@@ -1,7 +1,9 @@
 frontend/node_modules/
 frontend/dist/
 backend/.venv/
+backend/build/
 backend/__pycache__/
+backend/installer/codeflow.ico
 __pycache__/
 *.py[cod]
 .env

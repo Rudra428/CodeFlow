@@ -38,24 +38,17 @@ The API listens on `http://127.0.0.1:5000`. If PowerShell blocks activation, run
 
 ## Run the optional local judge
 
-The hosted IDE can use a small runner on the user's own Windows, macOS, or Linux computer. This sends run and diagnostics requests to `127.0.0.1:4000`; it does not route local runs through Render or Judge0.
+The recommended Windows setup is a one-time installer from the [CodeFlow GitHub Releases](https://github.com/Rudra428/CodeFlow/releases). Download `CodeFlowLocalRunner-Setup.exe` and run it. The installer explains that local execution is not sandboxed and asks you to confirm before continuing. You can optionally select **Start CodeFlow Local Runner when I sign in to Windows**. After installation, the runner starts in the notification area; right-click its icon to open CodeFlow or stop it. The runner is per-user and does not require administrator access. The installer is currently unsigned, so Windows may show a SmartScreen warning; users should download it only from the official CodeFlow GitHub release.
 
-1. Install Python 3.9 or newer and the compiler(s) you want to use (`g++` for C++, Python for Python, and JDK 17+ for Java).
-2. In a terminal, enter the backend folder, install the Python requirements, and start the runner:
+The hosted IDE sends Local mode run and diagnostics requests to `127.0.0.1:4000`; these requests do not go through Render or Judge0. The installer bundles the runner and its Python dependencies. Clients need to install only the compiler(s) for languages they want to use: `g++` for C++, Python for Python, and JDK 17+ for Java. The IDE detects which supported runtimes are available.
 
-   ```powershell
-   cd backend
-   py -m pip install -r requirements.txt
-   py run_local.py
-   ```
+For development or manual startup on Windows, install Python 3.9 or newer, then run `py -m pip install -r requirements-local.txt` and `py run_local.py` from `backend`.
 
-   On macOS or Linux, use `python3 -m pip install -r requirements.txt` and `python3 run_local.py` instead.
+To build the unsigned Windows installer yourself, install Inno Setup 6 and Python 3.9 or newer, then run `.\backend\build_installer.ps1` from the repository root. Alternatively, manually dispatch the **Build Windows Local Runner** GitHub Actions workflow to download the installer build artifact. A tagged `local-runner-v*` commit creates a GitHub Release with the installer.
 
-3. Keep the runner terminal open while using Local mode. Open CodeFlow and choose **Local runner (this device)**. The IDE checks for the runner automatically; if the browser asks for permission to access the local network, allow it for CodeFlow.
+The runner binds only to `127.0.0.1`, accepts browser requests only from the configured production or local-development CodeFlow origin, and is separate from the Render API. Chromium-based browsers may ask to grant CodeFlow local-network access the first time it contacts the runner.
 
-The runner binds only to `127.0.0.1`, accepts browser requests only from the configured exact CodeFlow or development origins, and is separate from the Render API. Set `FRONTEND_ORIGINS` before starting it if your production frontend uses another origin; include only trusted origins, comma-separated. Chromium-based browsers may ask to grant CodeFlow local-network access the first time it contacts the runner.
-
-**Security:** local execution is not a sandbox. Programs run with the same permissions as the user who started the runner and may access that user's files and network. Only run source code you trust. The runner is opt-in, and the IDE displays a warning whenever Local mode is selected.
+**Security:** local execution is not a sandbox. Programs run with the same permissions as the signed-in user and may access that user's files and network. Only run code you trust. The runner starts only after the user launches it or opts into starting it at sign-in, and the IDE displays a warning whenever Local mode is selected.
 
 ## Deploy frontend and API
 
