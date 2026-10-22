@@ -41,6 +41,7 @@ JUDGE0_POLL_INTERVAL_SECONDS = 1
 JUDGE0_MAX_POLL_SECONDS = 90
 DIAGNOSTICS_DEBOUNCE_HINT_MS = 1200
 COMPILE_TIMEOUT_SECONDS = 30
+SUBPROCESS_CREATION_FLAGS = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
 LOCAL_STANDARD_PROBES = (
     ("23", "#if !defined(__cpp_if_consteval) || __cpp_if_consteval < 202106L\n#error C++23 if consteval is unavailable\n#endif\nint main() { if consteval { return 0; } else { return 1; } }\n"),
     ("20", "#include <concepts>\nstatic_assert(std::same_as<int, int>);\nint main() {}\n"),
@@ -94,6 +95,7 @@ def _detect_local_cpp_standard(compiler):
                 timeout=5,
                 check=False,
                 shell=False,
+                creationflags=SUBPROCESS_CREATION_FLAGS,
             )
         except (OSError, subprocess.TimeoutExpired):
             continue
@@ -275,6 +277,7 @@ def _local_diagnostics(source, language_key):
                     cwd=temp_dir,
                     check=False,
                     shell=False,
+                    creationflags=SUBPROCESS_CREATION_FLAGS,
                 )
             except subprocess.TimeoutExpired:
                 return None, "Local Java syntax check exceeded 30 seconds."
@@ -303,6 +306,7 @@ def _local_diagnostics(source, language_key):
             timeout=COMPILE_TIMEOUT_SECONDS,
             check=False,
             shell=False,
+            creationflags=SUBPROCESS_CREATION_FLAGS,
         )
     except subprocess.TimeoutExpired:
         return None, "Local syntax check exceeded 30 seconds."
@@ -479,6 +483,7 @@ def _run_local_test(binary, case, time_limit_ms):
             timeout=(time_limit_ms + 200) / 1000,
             check=False,
             shell=False,
+            creationflags=SUBPROCESS_CREATION_FLAGS,
         )
         status = "OK" if completed.returncode == 0 else "RE"
         return {
@@ -529,6 +534,7 @@ def _run_local_interpreter(command, case, time_limit_ms, cwd=None):
             check=False,
             shell=False,
             cwd=cwd,
+            creationflags=SUBPROCESS_CREATION_FLAGS,
         )
         status = "OK" if completed.returncode == 0 else "RE"
         return {
@@ -617,6 +623,7 @@ def _run_local_java(source, javac, java, time_limit_ms, cases):
                 cwd=temp_dir,
                 check=False,
                 shell=False,
+                creationflags=SUBPROCESS_CREATION_FLAGS,
             )
         except subprocess.TimeoutExpired:
             return {"language": "Local Java", "results": [], "compileError": "Compilation exceeded 30 seconds."}, None
@@ -660,6 +667,7 @@ def _execute_local_cpp(source, time_limit_ms, cases):
                 cwd=temp_dir,
                 check=False,
                 shell=False,
+                creationflags=SUBPROCESS_CREATION_FLAGS,
             )
         except subprocess.TimeoutExpired:
             return {"standard": standard, "results": [], "compileError": "Compilation exceeded 30 seconds."}, None
