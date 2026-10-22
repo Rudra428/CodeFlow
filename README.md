@@ -1,6 +1,6 @@
 # CodeFlow
 
-CodeFlow is a React/Monaco coding workspace, a Manifest V3 Chrome bridge for importing Codeforces samples and submitting through your signed-in browser session, and a Flask API that runs C++, Python 3, and Java 17 solutions with Judge0 CE.
+CodeFlow is a React/Monaco coding workspace, a Manifest V3 Chrome bridge for importing Codeforces samples and submitting through your signed-in browser session, and APIs for judging C++, Python 3, and Java 17 solutions with Judge0 CE or an opt-in runner on the user's computer.
 
 ## Requirements
 
@@ -8,9 +8,9 @@ CodeFlow is a React/Monaco coding workspace, a Manifest V3 Chrome bridge for imp
 - Node.js 18 or later and npm
 - Python 3.9 or later
 - Internet access from the Flask backend to Judge0 CE (`https://ce.judge0.com`) when using online mode
-- `g++` on the computer running Flask for local C++ mode
+- `g++` on the user's computer for local C++ mode
 - Python 3 for local Python mode (the Flask Python interpreter is used)
-- JDK 17+ on the computer running Flask for local Java mode
+- JDK 17+ on the user's computer for local Java mode
 
 ## Start the IDE
 
@@ -36,6 +36,27 @@ python app.py
 
 The API listens on `http://127.0.0.1:5000`. If PowerShell blocks activation, run `python -m pip install -r requirements.txt` with the environment's Python directly instead.
 
+## Run the optional local judge
+
+The hosted IDE can use a small runner on the user's own Windows, macOS, or Linux computer. This sends run and diagnostics requests to `127.0.0.1:4000`; it does not route local runs through Render or Judge0.
+
+1. Install Python 3.9 or newer and the compiler(s) you want to use (`g++` for C++, Python for Python, and JDK 17+ for Java).
+2. In a terminal, enter the backend folder, install the Python requirements, and start the runner:
+
+   ```powershell
+   cd backend
+   py -m pip install -r requirements.txt
+   py run_local.py
+   ```
+
+   On macOS or Linux, use `python3 -m pip install -r requirements.txt` and `python3 run_local.py` instead.
+
+3. Keep the runner terminal open while using Local mode. Open CodeFlow and choose **Local runner (this device)**. The IDE checks for the runner automatically; if the browser asks for permission to access the local network, allow it for CodeFlow.
+
+The runner binds only to `127.0.0.1`, accepts browser requests only from the configured exact CodeFlow or development origins, and is separate from the Render API. Set `FRONTEND_ORIGINS` before starting it if your production frontend uses another origin; include only trusted origins, comma-separated. Chromium-based browsers may ask to grant CodeFlow local-network access the first time it contacts the runner.
+
+**Security:** local execution is not a sandbox. Programs run with the same permissions as the user who started the runner and may access that user's files and network. Only run source code you trust. The runner is opt-in, and the IDE displays a warning whenever Local mode is selected.
+
 ## Deploy frontend and API
 
 Push the project to GitHub, then create two services from the same repository:
@@ -44,7 +65,7 @@ Push the project to GitHub, then create two services from the same repository:
 
 1. In Render, create a **Blueprint** using this repository and approve the `render.yaml` configuration.
 2. When prompted for `FRONTEND_ORIGINS`, enter your exact Vercel production origin (currently `https://code-flow-rho-lemon.vercel.app`, with no trailing slash).
-3. Keep `ENABLE_LOCAL_EXECUTION` set to `false`. The backend uses Judge0 CE; it does not run submitted programs on the Render machine.
+3. Keep `ENABLE_LOCAL_EXECUTION` set to `false`. The Render backend is used for Judge0 CE requests; local execution happens only through the separately started runner on the user's device.
 4. Wait for the `codeflow-api` service to deploy and copy its Render URL, such as `https://codeflow-api.onrender.com`.
 
 ### Frontend on Vercel
@@ -80,7 +101,7 @@ The extension supports `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{inde
 
 Set `VITE_BACKEND_URL` when building/running the frontend if the API is hosted somewhere other than `http://localhost:5000`. The Flask service allows the origin or comma-separated origins configured in `FRONTEND_ORIGINS`; by default this is `http://localhost:5173`.
 
-Use **Judge0 CE (online)** in the IDE's **Run code with** dropdown and select the language. C++ is the default language and execution mode. Local execution is temporarily disabled. To re-enable it for a trusted, private deployment, set `ENABLE_LOCAL_EXECUTION=true` on the Flask backend; local code runs with the permissions of the backend process. Judge0 discovers the newest available GCC C++, Python 3, and Java runtime. By default, it uses the public `https://ce.judge0.com` instance; set `JUDGE0_BASE_URL` to use another Judge0 CE instance. Set `JUDGE0_CPP_LANGUAGE_ID`, `JUDGE0_PYTHON_LANGUAGE_ID`, or `JUDGE0_JAVA_LANGUAGE_ID` to pin a runtime.
+Use **Judge0 CE (online)** or start the optional local runner and choose **Local runner (this device)**. C++ is the default language and execution mode. The runner probes `http://127.0.0.1:4000` and enables only locally installed runtimes. Judge0 discovers the newest available GCC C++, Python 3, and Java runtime. By default, it uses the public `https://ce.judge0.com` instance; set `JUDGE0_BASE_URL` to use another Judge0 CE instance. Set `JUDGE0_CPP_LANGUAGE_ID`, `JUDGE0_PYTHON_LANGUAGE_ID`, or `JUDGE0_JAVA_LANGUAGE_ID` to pin a runtime.
 
 Judge0 mode sends source and test input to the configured Judge0 CE service; the public instance may apply rate limits, queue delays, or availability restrictions. The Flask API enforces request-size and test-count limits and caps concurrent requests.
 
@@ -90,4 +111,4 @@ Codeforces submission supports the selected language when Codeforces offers the 
 
 - `cf-bridge-extension/` — Chrome Manifest V3 service worker and IDE content-script relay.
 - `frontend/` — React, Vite, Tailwind CSS, and Monaco IDE.
-- `backend/` — Flask API for local or Judge0 CE C++, Python 3, and Java execution.
+- `backend/` — Flask API and opt-in loopback runner for Judge0 CE or local C++, Python 3, and Java execution.

@@ -31,7 +31,11 @@ export default function TopBar({
           <select value={executionMode} onChange={(event) => onExecutionModeChange(event.target.value)}>
             {["judge0", "local"].map((mode) => (
               <option key={mode} value={mode} disabled={!executionModes?.[mode]?.languages?.[language]?.available}>
-                {mode === "judge0" ? "Judge0 CE (online)" : "Local (temporarily disabled)"}
+                {mode === "judge0"
+                  ? "Judge0 CE (online)"
+                  : executionModes?.local?.languages?.[language]?.available
+                    ? "Local runner (this device)"
+                    : "Local runner (not detected)"}
               </option>
             ))}
           </select>

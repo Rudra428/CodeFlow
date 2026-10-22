@@ -5,6 +5,16 @@ import TopBar from "./components/TopBar.jsx";
 import { useExtensionBridge } from "./hooks/useExtensionBridge.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const LOCAL_BACKEND_URL = import.meta.env.VITE_LOCAL_BACKEND_URL || "http://127.0.0.1:4000";
+
+const UNAVAILABLE_LOCAL_MODE = {
+  available: false,
+  languages: {
+    cpp: { available: false, language: null },
+    python: { available: false, language: null },
+    java: { available: false, language: null }
+  }
+};
 
 function createId() {
   return globalThis.crypto?.randomUUID?.() || `test-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -38,6 +48,34 @@ export default function App() {
   }, [storageKey, code, language]);
   useEffect(() => {
     let active = true;
+    const localController = new AbortController();
+    const localTimeout = window.setTimeout(() => localController.abort(), 30000);
+
+    fetch(`${LOCAL_BACKEND_URL}/api/local-health`, {
+      cache: "no-store",
+      signal: localController.signal
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Local runner returned HTTP ${response.status}.`);
+        return response.json();
+      })
+      .then((health) => {
+        if (!active) return;
+        const localMode = { available: health.available, languages: health.languages };
+        setExecutionModes((current) => ({
+          ...(current || { judge0: { available: false, languages: {} } }),
+          local: localMode
+        }));
+      })
+      .catch(() => {
+        if (!active) return;
+        setExecutionModes((current) => ({
+          ...(current || { judge0: { available: false, languages: {} } }),
+          local: UNAVAILABLE_LOCAL_MODE
+        }));
+      })
+      .finally(() => window.clearTimeout(localTimeout));
+
     fetch(`${BACKEND_URL}/api/health`)
       .then((response) => {
         if (!response.ok) throw new Error(`Backend returned HTTP ${response.status}.`);
@@ -45,13 +83,24 @@ export default function App() {
       })
       .then((health) => {
         if (!active) return;
-        setExecutionModes(health.modes);
-        setExecutionMode("judge0");
+        setExecutionModes((current) => ({
+          ...health.modes,
+          local: current?.local || UNAVAILABLE_LOCAL_MODE
+        }));
       })
       .catch(() => {
-        if (active) setCompilerStandard("Backend unavailable");
+        if (!active) return;
+        setCompilerStandard("Judge0 backend unavailable");
+        setExecutionModes((current) => current || {
+          judge0: { available: false, languages: {} },
+          local: UNAVAILABLE_LOCAL_MODE
+        });
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+      localController.abort();
+      window.clearTimeout(localTimeout);
+    };
   }, []);
   useEffect(() => {
     if (!executionModes) return;
@@ -65,7 +114,8 @@ export default function App() {
     const timer = window.setTimeout(async () => {
       setDiagnosticsStatus("checking");
       try {
-        const response = await fetch(`${BACKEND_URL}/api/diagnostics`, {
+        const backendUrl = executionMode === "local" ? LOCAL_BACKEND_URL : BACKEND_URL;
+        const response = await fetch(`${backendUrl}/api/diagnostics`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sourceCode: code, executionMode, language }),
@@ -112,7 +162,8 @@ export default function App() {
       ? { ...test, running: true, error: "", errorType: null, actualOutput: null }
       : test));
     try {
-      const response = await fetch(`${BACKEND_URL}/api/execute`, {
+      const backendUrl = executionMode === "local" ? LOCAL_BACKEND_URL : BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/execute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,6 +264,11 @@ export default function App() {
         submissionState={submissionState}
       />
       {bridgeError && <div className="notice">{bridgeError} Ensure the CodeFlow extension is enabled.</div>}
+      {executionMode === "local" && (
+        <div className="notice">
+          Local mode runs code on this computer with your account permissions. Only run code you trust.
+        </div>
+      )}
       <div className="workspace">
         <section className="editor-section">
           <EditorPane

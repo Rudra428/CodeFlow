@@ -57,6 +57,27 @@ app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_BYTES
 CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
 
 
+@app.before_request
+def validate_local_runner_origin():
+    if (
+        LOCAL_EXECUTION_ENABLED
+        and request.path in ("/api/local-health", "/api/diagnostics", "/api/execute")
+        and request.headers.get("Origin")
+        and request.headers["Origin"] not in FRONTEND_ORIGINS
+    ):
+        return error_response("This origin is not allowed to use the local runner.", 403)
+
+
+@app.after_request
+def allow_local_network_preflight(response):
+    if (
+        request.headers.get("Access-Control-Request-Private-Network") == "true"
+        and request.headers.get("Origin") in FRONTEND_ORIGINS
+    ):
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
+
+
 def error_response(message, status):
     return jsonify({"error": message}), status
 
@@ -665,11 +686,10 @@ def request_too_large(_error):
     return error_response(f"Request body exceeds {MAX_REQUEST_BYTES} bytes.", 413)
 
 
-@app.get("/api/health")
-def health():
+def _local_languages():
     compiler = shutil.which("g++") if LOCAL_EXECUTION_ENABLED else None
     local_standard = _detect_local_cpp_standard(compiler) if compiler else None
-    local_languages = {
+    return {
         "cpp": {
             "available": bool(compiler and local_standard),
             "language": f"Local GNU C++{local_standard[5:]}" if local_standard else None,
@@ -683,6 +703,20 @@ def health():
             "language": "Local Java (JDK)",
         },
     }
+
+
+@app.get("/api/local-health")
+def local_health():
+    languages = _local_languages()
+    return jsonify({
+        "available": LOCAL_EXECUTION_ENABLED and any(language["available"] for language in languages.values()),
+        "languages": languages,
+    })
+
+
+@app.get("/api/health")
+def health():
+    local_languages = _local_languages()
     judge0_languages = {}
     for language_key in ("cpp", "python", "java"):
         try:
