@@ -68,7 +68,7 @@ void sieve(vi &prime, int n) {
 
 
 void solve() {
-    stack<int>s;
+    
 }
 
 signed main() {
