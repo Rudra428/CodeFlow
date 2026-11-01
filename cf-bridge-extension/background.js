@@ -107,6 +107,29 @@ function waitForTab(tabId, timeoutMs = 30000) {
   });
 }
 
+function waitForTabNavigation(tabId, timeoutMs = 15000) {
+  return new Promise((resolve) => {
+    let sawLoading = false;
+    const finish = () => {
+      clearTimeout(timeout);
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      chrome.tabs.onRemoved.removeListener(onRemoved);
+      resolve();
+    };
+    const timeout = setTimeout(finish, timeoutMs);
+    const onUpdated = (updatedTabId, changeInfo) => {
+      if (updatedTabId !== tabId) return;
+      if (changeInfo.status === "loading") sawLoading = true;
+      if (sawLoading && changeInfo.status === "complete") finish();
+    };
+    const onRemoved = (removedTabId) => {
+      if (removedTabId === tabId) finish();
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    chrome.tabs.onRemoved.addListener(onRemoved);
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== "CF_SUBMIT_CODE") return false;
 
@@ -126,10 +149,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     });
     try {
       await waitForTab(tab.id);
+      const navigation = waitForTabNavigation(tab.id);
       const [result] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         args: [{ problemIndex, language, programTypeId, sourceCode }],
-        func: ({ problemIndex, language, programTypeId, sourceCode }) => {
+        func: async ({ problemIndex, language, programTypeId, sourceCode }) => {
           const setSelect = (selector, value) => {
             const select = document.querySelector(selector);
             if (!select) throw new Error(`Missing form field: ${selector}`);
@@ -156,25 +180,26 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           if (!selectedProgramTypeId) throw new Error(`Codeforces does not offer a matching ${language} language.`);
           setSelect("select[name='programTypeId']", String(selectedProgramTypeId));
           const editorToggle = document.querySelector("#toggleEditorCheckbox");
-          if (editorToggle && !editorToggle.checked) {
+          if (editorToggle?.checked) {
             editorToggle.click();
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
           const textarea = document.querySelector("#sourceCodeTextarea");
           const submit = document.querySelector("#singlePageSubmitButton");
           if (!textarea || !submit) throw new Error("Codeforces submission form was not found.");
 
-          const commentPrefix = language === "python" ? "# " : "// ";
-          textarea.value = `${sourceCode}\n${commentPrefix}Submitted via CodeFlow at ${new Date().toISOString()}`;
+          textarea.value = sourceCode;
           textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          textarea.dispatchEvent(new Event("change", { bubbles: true }));
+          if (textarea.value !== sourceCode) throw new Error("Could not fill the Codeforces source editor.");
           submit.click();
           return { submitted: true };
         }
       });
       if (!result?.result?.submitted) throw new Error("Codeforces did not accept the submission form.");
+      await navigation;
       sendResponse({ ok: true, message: "Submission form submitted." });
-      setTimeout(() => chrome.tabs.remove(tab.id).catch(() => {}), 3000);
     } catch (error) {
-      await chrome.tabs.remove(tab.id).catch(() => {});
       throw error;
     }
   })().catch((error) => {

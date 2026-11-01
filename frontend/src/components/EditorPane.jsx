@@ -141,33 +141,60 @@ const SNIPPETS = {
   fastio: "ios::sync_with_stdio(false);\ncin.tie(nullptr);"
 };
 
+const CPP_HEADERS = ["bits/stdc++.h", "iostream", "algorithm", "numeric", "vector", "string", "queue", "stack", "map", "set", "unordered_map", "unordered_set", "deque", "array", "bitset", "cmath", "limits", "utility"];
+
 const GENERAL_COMPLETIONS = [
-  ["bits/stdc++.h", "Header", "bits/stdc++.h"],
   ["vector", "Type", "vector<$1>"],
   ["string", "Type", "string"],
   ["stack", "Type", "stack<$1>"],
   ["queue", "Type", "queue<$1>"],
   ["deque", "Type", "deque<$1>"],
+  ["list", "Type", "list<$1>"], ["forward_list", "Type", "forward_list<$1>"],
+  ["array", "Type", "array<$1, $2>"], ["bitset", "Type", "bitset<$1>"],
   ["set", "Type", "set<$1>"],
+  ["multiset", "Type", "multiset<$1>"], ["multimap", "Type", "multimap<$1, $2>"],
   ["map", "Type", "map<$1, $2>"],
   ["unordered_map", "Type", "unordered_map<$1, $2>"],
+  ["unordered_set", "Type", "unordered_set<$1>"],
+  ["unordered_multimap", "Type", "unordered_multimap<$1, $2>"],
+  ["unordered_multiset", "Type", "unordered_multiset<$1>"],
   ["priority_queue", "Type", "priority_queue<$1>"],
   ["pair", "Type", "pair<$1, $2>"],
+  ["tuple", "Type", "tuple<$1, $2>"], ["greater", "Type", "greater<$1>"],
   ["sort", "Function", "sort($1.begin(), $1.end());"],
+  ["stable_sort", "Function", "stable_sort($1.begin(), $1.end());"],
+  ["reverse", "Function", "reverse($1.begin(), $1.end());"],
+  ["unique", "Function", "unique($1.begin(), $1.end())"],
+  ["next_permutation", "Function", "next_permutation($1.begin(), $1.end())"],
+  ["min", "Function", "min($1, $2)"], ["max", "Function", "max($1, $2)"],
+  ["min_element", "Function", "min_element($1.begin(), $1.end())"],
+  ["max_element", "Function", "max_element($1.begin(), $1.end())"],
+  ["nth_element", "Function", "nth_element($1.begin(), $1.begin() + $2, $1.end())"],
   ["lower_bound", "Function", "lower_bound($1.begin(), $1.end(), $2)"],
   ["upper_bound", "Function", "upper_bound($1.begin(), $1.end(), $2)"],
   ["binary_search", "Function", "binary_search($1.begin(), $1.end(), $2)"],
+  ["find", "Function", "find($1.begin(), $1.end(), $2)"],
+  ["count", "Function", "count($1.begin(), $1.end(), $2)"],
   ["accumulate", "Function", "accumulate($1.begin(), $1.end(), $2)"],
+  ["iota", "Function", "iota($1.begin(), $1.end(), $2)"],
+  ["gcd", "Function", "gcd($1, $2)"], ["lcm", "Function", "lcm($1, $2)"],
+  ["abs", "Function", "abs($0)"], ["swap", "Function", "swap($1, $2)"],
+  ["make_pair", "Function", "make_pair($1, $2)"],
   ["cout", "Variable", "cout << $0;"],
   ["cin", "Variable", "cin >> $0;"],
+  ["cerr", "Variable", "cerr << $0;"],
   ["long long", "Keyword", "long long"],
+  ["int", "Keyword", "int"], ["bool", "Keyword", "bool"],
   ["const", "Keyword", "const"],
   ["constexpr", "Keyword", "constexpr"],
   ["auto", "Keyword", "auto"],
   ["return", "Keyword", "return"],
+  ["break", "Keyword", "break;"], ["continue", "Keyword", "continue;"],
   ["for", "Keyword", "for ($1; $2; $3) {\n    $0\n}"],
   ["if", "Keyword", "if ($1) {\n    $0\n}"],
-  ["while", "Keyword", "while ($1) {\n    $0\n}"]
+  ["else", "Keyword", "else {\n    $0\n}"],
+  ["while", "Keyword", "while ($1) {\n    $0\n}"],
+  ["switch", "Keyword", "switch ($1) {\n    case $2:\n        $0\n        break;\n    default:\n        break;\n}"]
 ];
 
 const MEMBER_COMPLETIONS = {
@@ -253,30 +280,67 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
     const monacoLanguage = language === "cpp" ? "cpp" : language === "python" ? "python" : "java";
     const languageCompletions = language === "python"
       ? [
-          ["print", "Function", "print($0)"], ["len", "Function", "len($0)"],
-          ["range", "Function", "range($0)"], ["enumerate", "Function", "enumerate($0)"],
-          ["sorted", "Function", "sorted($0)"], ["set", "Type", "set()"],
+          ["print", "Function", "print($0)"], ["input", "Function", "input()"],
+          ["len", "Function", "len($0)"], ["range", "Function", "range($0)"],
+          ["enumerate", "Function", "enumerate($0)"], ["zip", "Function", "zip($1, $2)"],
+          ["sorted", "Function", "sorted($0)"], ["reversed", "Function", "reversed($0)"],
+          ["sum", "Function", "sum($0)"], ["min", "Function", "min($0)"],
+          ["max", "Function", "max($0)"], ["abs", "Function", "abs($0)"],
+          ["all", "Function", "all($0)"], ["any", "Function", "any($0)"],
+          ["map", "Function", "map($1, $2)"], ["filter", "Function", "filter($1, $2)"],
+          ["int", "Type", "int($0)"], ["float", "Type", "float($0)"],
+          ["str", "Type", "str($0)"], ["set", "Type", "set()"],
           ["dict", "Type", "dict()"], ["list", "Type", "list()"],
-          ["deque", "Type", "deque()"], ["heapq", "Module", "heapq"],
-          ["collections", "Module", "collections"], ["defaultdict", "Function", "defaultdict($0)"],
-          ["Counter", "Type", "Counter($0)"], ["solve", "Function", "solve()"],
-          ["for", "Keyword", "for $1 in $2:\n    $0"], ["if", "Keyword", "if $1:\n    $0"],
-          ["while", "Keyword", "while $1:\n    $0"], ["def", "Keyword", "def $1($2):\n    $0"]
+          ["tuple", "Type", "tuple()"], ["bytearray", "Type", "bytearray()"],
+          ["sys", "Module", "sys"], ["math", "Module", "math"],
+          ["heapq", "Module", "heapq"], ["bisect", "Module", "bisect"],
+          ["itertools", "Module", "itertools"], ["collections", "Module", "collections"],
+          ["deque", "Type", "deque()"], ["defaultdict", "Function", "defaultdict($0)"],
+          ["Counter", "Type", "Counter($0)"], ["heappush", "Function", "heappush($1, $2)"],
+          ["heappop", "Function", "heappop($0)"], ["bisect_left", "Function", "bisect_left($1, $2)"],
+          ["bisect_right", "Function", "bisect_right($1, $2)"],
+          ["gcd", "Function", "gcd($1, $2)"], ["factorial", "Function", "factorial($0)"],
+          ["solve", "Function", "solve()"], ["for", "Keyword", "for $1 in $2:\n    $0"],
+          ["if", "Keyword", "if $1:\n    $0"], ["elif", "Keyword", "elif $1:\n    $0"],
+          ["while", "Keyword", "while $1:\n    $0"], ["def", "Keyword", "def $1($2):\n    $0"],
+          ["class", "Keyword", "class $1:\n    $0"], ["try", "Keyword", "try:\n    $0\nexcept Exception as e:\n    pass"]
         ]
       : language === "java"
         ? [
             ["System.out.println", "Function", "System.out.println($0);"],
+            ["System.out.print", "Function", "System.out.print($0);"],
             ["StringBuilder", "Type", "StringBuilder"],
             ["ArrayList", "Type", "ArrayList<$1>"],
+            ["List", "Type", "List<$1>"], ["Map", "Type", "Map<$1, $2>"],
+            ["Set", "Type", "Set<$1>"], ["Queue", "Type", "Queue<$1>"],
+            ["Deque", "Type", "Deque<$1>"],
             ["HashMap", "Type", "HashMap<$1, $2>"],
             ["HashSet", "Type", "HashSet<$1>"],
+            ["TreeMap", "Type", "TreeMap<$1, $2>"],
+            ["TreeSet", "Type", "TreeSet<$1>"],
             ["PriorityQueue", "Type", "PriorityQueue<$1>"],
             ["ArrayDeque", "Type", "ArrayDeque<$1>"],
+            ["StringTokenizer", "Type", "StringTokenizer($1)"],
+            ["Arrays.binarySearch", "Function", "Arrays.binarySearch($1, $2)"],
             ["Arrays.sort", "Function", "Arrays.sort($1);"],
+            ["Arrays.fill", "Function", "Arrays.fill($1, $2);"],
+            ["Arrays.copyOf", "Function", "Arrays.copyOf($1, $2)"],
             ["Collections.sort", "Function", "Collections.sort($1);"],
+            ["Collections.reverse", "Function", "Collections.reverse($0);"],
+            ["Collections.max", "Function", "Collections.max($0)"],
+            ["Collections.min", "Function", "Collections.min($0)"],
+            ["Math.max", "Function", "Math.max($1, $2)"],
+            ["Math.min", "Function", "Math.min($1, $2)"],
+            ["Math.abs", "Function", "Math.abs($0)"],
+            ["Math.sqrt", "Function", "Math.sqrt($0)"],
+            ["Math.pow", "Function", "Math.pow($1, $2)"],
+            ["BigInteger", "Type", "BigInteger"],
             ["for", "Keyword", "for (int $1 = 0; $1 < $2; $1++) {\n    $0\n}"],
+            ["for-each", "Snippet", "for ($1 $2 : $3) {\n    $0\n}"],
             ["if", "Keyword", "if ($1) {\n    $0\n}"],
+            ["else", "Keyword", "else {\n    $0\n}"],
             ["while", "Keyword", "while ($1) {\n    $0\n}"],
+            ["try", "Keyword", "try {\n    $0\n} catch (Exception e) {\n    e.printStackTrace();\n}"],
             ["main", "Snippet", "public static void main(String[] args) {\n    $0\n}"]
           ]
         : GENERAL_COMPLETIONS;
@@ -291,6 +355,16 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
           startColumn: word.startColumn,
           endColumn: word.endColumn
         };
+        if (language === "cpp" && /^\s*#\s*include\s*[<"][^>"]*$/.test(line)) {
+          return {
+            suggestions: CPP_HEADERS.map((header) => ({
+              label: header,
+              kind: monaco.languages.CompletionItemKind.Module,
+              insertText: header,
+              range
+            }))
+          };
+        }
         const memberMatch = line.match(/([A-Za-z_]\w*)\.\w*$/);
         if (language === "cpp" && memberMatch) {
           const container = inferContainerType(model.getValue(), memberMatch[1]);
@@ -327,12 +401,17 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
             ? [
                 ["fori", "for i in range(n):\n    $0"],
                 ["fore", "for item in items:\n    $0"],
+                ["readint", "int(sys.stdin.readline())"],
+                ["readints", "list(map(int, sys.stdin.readline().split()))"],
                 ["solve", "def solve():\n    $0"],
+                ["testcases", "t = int(sys.stdin.readline())\nfor _ in range(t):\n    solve()"],
                 ["main", 'if __name__ == "__main__":\n    main()']
               ]
             : [
                 ["fori", "for (int i = 0; i < n; i++) {\n    $0\n}"],
                 ["fore", "for (var item : items) {\n    $0\n}"],
+                ["scanner", "Scanner $1 = new Scanner(System.in);"],
+                ["stringbuilder", "StringBuilder $1 = new StringBuilder();"],
                 ["main", "public static void main(String[] args) {\n    $0\n}"]
               ];
         return {
