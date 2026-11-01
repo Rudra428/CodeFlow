@@ -158,6 +158,7 @@ const GENERAL_COMPLETIONS = [
   ["unordered_set", "Type", "unordered_set<$1>"],
   ["unordered_multimap", "Type", "unordered_multimap<$1, $2>"],
   ["unordered_multiset", "Type", "unordered_multiset<$1>"],
+  ["ordered_set", "Type", "ordered_set<$1>"],
   ["priority_queue", "Type", "priority_queue<$1>"],
   ["pair", "Type", "pair<$1, $2>"],
   ["tuple", "Type", "tuple<$1, $2>"], ["greater", "Type", "greater<$1>"],
@@ -199,6 +200,7 @@ const GENERAL_COMPLETIONS = [
 
 const MEMBER_COMPLETIONS = {
   stack: ["empty", "size", "top", "push", "emplace", "pop", "swap"],
+  ordered_set: ["begin", "clear", "empty", "end", "erase", "find", "insert", "lower_bound", "order_of_key", "size", "upper_bound", "find_by_order"],
   queue: ["empty", "size", "front", "back", "push", "emplace", "pop", "swap"],
   priority_queue: ["empty", "size", "top", "push", "emplace", "pop", "swap"],
   vector: ["at", "back", "begin", "capacity", "cbegin", "cend", "clear", "crbegin", "crend", "data", "emplace", "emplace_back", "empty", "end", "front", "insert", "max_size", "pop_back", "push_back", "rbegin", "rend", "reserve", "resize", "shrink_to_fit", "size", "swap"],
@@ -222,7 +224,6 @@ let completionProvider;
 function inferContainerType(source, variable) {
   const escaped = variable.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const containerNames = Object.keys(MEMBER_COMPLETIONS)
-    .filter((name) => name !== "pair")
     .sort((left, right) => right.length - left.length)
     .join("|");
   const declaration = new RegExp(`(?:std::)?(${containerNames})\\s*<(?:[^<>]|<[^<>]*>)*>\\s*${escaped}\\b|(?:std::)?(string)\\s+${escaped}\\b`);
@@ -396,7 +397,10 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
           Snippet: monaco.languages.CompletionItemKind.Snippet
         };
         const languageSnippets = language === "cpp"
-          ? Object.entries(SNIPPETS)
+          ? [
+              ...Object.entries(SNIPPETS),
+              ["orderedset", "#include <ext/pb_ds/assoc_container.hpp>\n#include <ext/pb_ds/tree_policy.hpp>\nusing namespace __gnu_pbds;\ntemplate <class T>\nusing ordered_set = tree<T, null_type, less<T>, rb_tree_tag, tree_order_statistics_node_update>;\n"]
+            ]
           : language === "python"
             ? [
                 ["fori", "for i in range(n):\n    $0"],
