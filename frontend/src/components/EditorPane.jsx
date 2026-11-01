@@ -242,7 +242,7 @@ function inferContainerType(source, variable) {
   return null;
 }
 
-export default function EditorPane({ value, onChange, compilerStandard, diagnostics, diagnosticsStatus, language, onSaveStarter, onResetStarter, hasPersonalStarter }) {
+export default function EditorPane({ value, onChange, compilerStandard, diagnostics, diagnosticsStatus, language }) {
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
 
@@ -451,24 +451,6 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
     <div className="editor-frame">
       <div className="pane-heading">
         <span>{language === "python" ? "main.py" : language === "java" ? "Main.java" : "main.cpp"}</span>
-        <div className="button-row">
-          <button
-            className="button button-muted button-small"
-            onClick={onSaveStarter}
-            title={`Use this ${language} code as the starter for new problems`}
-          >
-            {hasPersonalStarter ? "Update starter" : "Save as starter"}
-          </button>
-          {hasPersonalStarter && (
-            <button
-              className="button button-danger button-small"
-              onClick={onResetStarter}
-              title="Remove the saved starter; current editor contents stay unchanged"
-            >
-              Reset
-            </button>
-          )}
-        </div>
         <span className="editor-heading-status">
           {diagnosticsStatus === "checking" && <span className="diagnostics-checking">Checking...</span>}
           {diagnosticsStatus === "error" && <span className="diagnostics-unavailable">Diagnostics unavailable</span>}

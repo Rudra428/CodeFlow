@@ -5,7 +5,9 @@ export default function TopBar({
   language,
   onLanguageChange,
   executionModes,
-  onRunAll,
+  onSaveStarter,
+  onResetStarter,
+  hasPersonalStarter,
   onSubmit,
   isSubmitting,
   submissionState
@@ -33,6 +35,22 @@ export default function TopBar({
         {problem && <span>{problemMeta}</span>}
       </div>
       <div className="topbar-actions">
+        <button
+          className="button button-muted"
+          onClick={onSaveStarter}
+          title={`Use this ${language} code as the starter for new problems`}
+        >
+          {hasPersonalStarter ? "Update starter" : "Save as starter"}
+        </button>
+        {hasPersonalStarter && (
+          <button
+            className="button button-danger"
+            onClick={onResetStarter}
+            title="Remove the saved starter; current editor contents stay unchanged"
+          >
+            Reset
+          </button>
+        )}
         <label className="execution-field">
           <span>Run code with</span>
           <select value={executionMode} onChange={(event) => onExecutionModeChange(event.target.value)}>
@@ -62,7 +80,6 @@ export default function TopBar({
             })}
           </select>
         </label>
-        <button className="button button-muted" onClick={onRunAll}>Run All Samples</button>
         <button className="button button-submit" onClick={onSubmit} disabled={isSubmitting || !problem}>
           {isSubmitting ? "Submitting..." : `Submit to ${platformName}`}
         </button>

@@ -287,7 +287,9 @@ export default function App() {
         language={language}
         onLanguageChange={changeLanguage}
         executionModes={executionModes}
-        onRunAll={runAll}
+        onSaveStarter={savePersonalStarter}
+        onResetStarter={resetPersonalStarter}
+        hasPersonalStarter={hasPersonalStarter}
         onSubmit={submit}
         isSubmitting={submitting}
         submissionState={submissionState}
@@ -307,9 +309,6 @@ export default function App() {
             diagnostics={diagnostics}
             diagnosticsStatus={diagnosticsStatus}
             language={language === "cpp" ? "cpp" : language}
-            onSaveStarter={savePersonalStarter}
-            onResetStarter={resetPersonalStarter}
-            hasPersonalStarter={hasPersonalStarter}
           />
         </section>
         <TestCaseManager
