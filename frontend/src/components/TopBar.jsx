@@ -38,15 +38,15 @@ export default function TopBar({
         <button
           className="button button-muted"
           onClick={onSaveStarter}
-          title={`Use this ${language} code as the starter for new problems`}
+          title={`Use this ${language} code as boilerplate for new problems`}
         >
-          {hasPersonalStarter ? "Update starter" : "Save as starter"}
+          {hasPersonalStarter ? "Update boilerplate" : "Save as boilerplate"}
         </button>
         {hasPersonalStarter && (
           <button
             className="button button-danger"
             onClick={onResetStarter}
-            title="Remove the saved starter; current editor contents stay unchanged"
+            title="Remove the saved boilerplate; current editor contents stay unchanged"
           >
             Reset
           </button>
