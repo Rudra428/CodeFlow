@@ -10,6 +10,13 @@ export default function TopBar({
   isSubmitting,
   submissionState
 }) {
+  const platform = problem?.platform || "codeforces";
+  const platformName = platform === "atcoder" ? "AtCoder" : platform === "cses" ? "CSES" : "Codeforces";
+  const problemMeta = !problem ? null : platform === "codeforces"
+    ? `${problem.contestType === "gym" ? "Gym" : "Contest"} ${problem.contestId} · ${problem.problemIndex} · ${problem.timeLimitMs} ms · ${problem.memoryLimitMb} MB`
+    : platform === "atcoder"
+      ? `${problem.contestId} · ${problem.problemIndex}`
+      : `Problem ${problem.problemId}`;
   const verdictClass = {
     accepted: "verdict-accepted",
     rejected: "verdict-rejected",
@@ -22,8 +29,8 @@ export default function TopBar({
     <header className="topbar">
       <div className="brand"><img className="brand-mark" src="/codeflow-icon.svg" alt="" /><span>CodeFlow</span></div>
       <div className="problem-meta">
-        <strong>{problem?.title || "Select a Codeforces problem"}</strong>
-        {problem && <span>{problem.contestType === "gym" ? "Gym" : "Contest"} {problem.contestId} · {problem.problemIndex} · {problem.timeLimitMs} ms · {problem.memoryLimitMb} MB</span>}
+        <strong>{problem?.title || "Select a supported problem"}</strong>
+        {problem && <span>{problemMeta}</span>}
       </div>
       <div className="topbar-actions">
         <label className="execution-field">
@@ -57,7 +64,7 @@ export default function TopBar({
         </label>
         <button className="button button-muted" onClick={onRunAll}>Run All Samples</button>
         <button className="button button-submit" onClick={onSubmit} disabled={isSubmitting || !problem}>
-          {isSubmitting ? "Submitting..." : "Submit to CF"}
+          {isSubmitting ? "Submitting..." : `Submit to ${platformName}`}
         </button>
         <div className={`verdict-pill ${verdictClass}`} title={submissionState.detail}>
           <span className="verdict-dot" />

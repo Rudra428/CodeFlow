@@ -32,7 +32,7 @@ export function useExtensionBridge() {
         settled = true;
         window.clearTimeout(requestTimer);
         setProblem(data.problem);
-        if (!data.problem) setBridgeError("No saved problem was found. Open a Codeforces problem and click the extension icon.");
+        if (!data.problem) setBridgeError("No saved problem was found. Open a supported problem and click the extension icon.");
       } else if (data?.type === "CF_BRIDGE_ERROR") {
         settled = true;
         window.clearTimeout(requestTimer);

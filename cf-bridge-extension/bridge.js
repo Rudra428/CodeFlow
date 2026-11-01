@@ -10,21 +10,22 @@ window.addEventListener("message", async (event) => {
   if (event.data.type === "LOAD_CF_PROBLEM") {
     const key = String(event.data.key || "");
     const requestId = event.data.requestId;
-    if (!/^\d+_[A-Z]\d*$/.test(key)) {
+    if (!/^(?:\d+_[A-Z]\d*|atcoder_[A-Za-z0-9_-]+_[A-Za-z0-9_-]+|cses_problemset_\d+)$/.test(key)) {
       window.postMessage({
         type: "CF_BRIDGE_ERROR",
         requestId,
-        error: "The Codeforces problem link is invalid. Reopen the problem with the CodeFlow extension."
+        error: "The problem link is invalid. Reopen the problem with the CodeFlow extension."
       }, ideOrigin);
       return;
     }
     try {
-      const stored = await chrome.storage.local.get(`cf_prob_${key}`);
+      const storageKey = /^\d+_[A-Z]\d*$/.test(key) ? `cf_prob_${key}` : `problem_${key}`;
+      const stored = await chrome.storage.local.get(storageKey);
       window.postMessage({
         type: "CF_PROBLEM_LOADED",
         requestId,
         key,
-        problem: stored[`cf_prob_${key}`] || null
+        problem: stored[storageKey] || null
       }, ideOrigin);
     } catch (error) {
       window.postMessage({ type: "CF_BRIDGE_ERROR", requestId, error: error.message }, ideOrigin);

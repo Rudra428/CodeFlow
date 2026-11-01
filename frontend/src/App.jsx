@@ -224,7 +224,8 @@ export default function App() {
 
   const submit = async () => {
     if (!problem) return;
-    if (!problem.cfHandle?.trim()) {
+    const platform = problem.platform || "codeforces";
+    if (platform === "codeforces" && !problem.cfHandle?.trim()) {
       setSubmissionState({ status: "error", detail: "Sign in to Codeforces and reload this problem." });
       return;
     }
@@ -233,8 +234,10 @@ export default function App() {
     const submittedAt = Date.now();
     try {
       const result = await submitCode({
+        platform,
         contestId: problem.contestId,
         contestType: problem.contestType,
+        problemId: problem.problemId,
         problemIndex: problem.problemIndex,
         language,
         sourceCode: code
@@ -243,7 +246,12 @@ export default function App() {
         setSubmissionState({ status: "error", detail: result.error || "Submission failed." });
         return;
       }
-      void pollVerdict({ handle: problem.cfHandle, contestId: problem.contestId, problemIndex: problem.problemIndex, submittedAt });
+      if (platform === "codeforces") {
+        void pollVerdict({ handle: problem.cfHandle, contestId: problem.contestId, problemIndex: problem.problemIndex, submittedAt });
+      } else {
+        const platformName = platform === "atcoder" ? "AtCoder" : "CSES";
+        setSubmissionState({ status: "submitted", detail: `Sent to ${platformName}. Check the platform for its verdict.` });
+      }
     } finally {
       setSubmitting(false);
     }

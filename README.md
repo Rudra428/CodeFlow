@@ -68,19 +68,19 @@ Push the project to GitHub, then create two services from the same repository:
 3. Add the environment variable `VITE_BACKEND_URL` with the Render service URL (for example, `https://codeflow-api.onrender.com`, without a trailing slash), then deploy or redeploy.
 4. If your Vercel production domain changes, update Render's `FRONTEND_ORIGINS` to the new exact origin and save the change to redeploy/restart the backend.
 
-The Codeforces browser extension opens `https://code-flow-rho-lemon.vercel.app` and allows messages only from that exact origin or `http://localhost:5173` for development. If your Vercel production domain changes, update the extension's `IDE_URL`, `IDE_ORIGINS`, and manifest host/content-script matches to the new exact origin. Avoid allowing arbitrary Vercel domains.
+The browser extension opens `https://code-flow-rho-lemon.vercel.app` and allows messages only from that exact origin or `http://localhost:5173` for development. If your Vercel production domain changes, update the extension's `IDE_URL`, `IDE_ORIGINS`, and manifest host/content-script matches to the new exact origin. Avoid allowing arbitrary Vercel domains.
 
-When a problem link opens the IDE, the IDE retries the extension handshake briefly to tolerate slow content-script startup. If it still reports that the extension did not respond, confirm the extension is enabled and has site access for the Vercel domain, reload the extension from `chrome://extensions` (or `edge://extensions`), then reopen the problem from Codeforces.
+When a problem link opens the IDE, the IDE retries the extension handshake briefly to tolerate slow content-script startup. If it still reports that the extension did not respond, confirm the extension is enabled and has site access for the Vercel domain, reload the extension from `chrome://extensions` (or `edge://extensions`), then reopen the problem from a supported site.
 
 ## Load the Chrome extension
 
 1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge) and enable **Developer mode**.
 2. Choose **Load unpacked** and select the `cf-bridge-extension` folder.
-3. Sign in to Codeforces in Chrome.
-4. Open a contest, gym, or problemset problem, then click the extension icon. The IDE opens with the problem statement metadata and scraped samples.
-5. Sign in to Codeforces in the browser before submitting. The IDE uses the signed-in profile from the problem page; there is no separate handle to enter.
+3. Sign in to Codeforces, AtCoder, or CSES in Chrome.
+4. Open a supported problem, then click the extension icon. The IDE opens with the problem metadata and any sample tests found on the page.
+5. Sign in to the problem site before submitting. CodeFlow uses your browser session; there is no separate account to enter.
 
-The extension supports `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{index}`, and `/problemset/problem/{id}/{index}`. Submission chooses the matching compiler from the Codeforces form for the selected language.
+The extension supports Codeforces `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{index}`, and `/problemset/problem/{id}/{index}` pages; AtCoder `/contests/{contest}/tasks/{task}` pages; and CSES `/problemset/task/{id}` pages. Problem import and sample execution work for all three sites.
 
 ## Running tests and submitting
 
@@ -88,7 +88,8 @@ The extension supports `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{inde
 - Compiler diagnostics use the selected language and execution mode. C++ syntax highlighting, Python and Java highlighting, bracket matching, autocomplete, and language-specific snippets are enabled.
 - Add or edit test cases in the right pane; use **Run** or **Run All Tests** to execute them.
 - The API submits each test case to Judge0 CE, returning standard output, standard error, and per-case status.
-- **Submit to CF** opens a background Codeforces tab and fills the submission form using your current browser session. The IDE then polls the Codeforces user-status API for the verdict.
+- **Submit to Codeforces** keeps the existing flow: it opens a background tab, fills the form using your browser session, and polls the Codeforces API for a verdict.
+- **Submit to AtCoder** or **Submit to CSES** opens the site's submission page in a background tab, selects the matching available language, fills the code, and submits it. Check that platform's submissions page for the verdict; automatic verdict polling is currently Codeforces-only.
 
 ## Configuration and operational safety
 

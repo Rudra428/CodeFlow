@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CodeFlow",
   "version": "1.0.1",
-  "description": "Load Codeforces samples into CodeFlow and submit code from your browser session.",
+  "description": "Load Codeforces, AtCoder, and CSES samples into CodeFlow and submit through your browser session.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -18,6 +18,10 @@
   "host_permissions": [
     "https://codeforces.com/*",
     "https://www.codeforces.com/*",
+    "https://atcoder.jp/*",
+    "https://www.atcoder.jp/*",
+    "https://cses.fi/*",
+    "https://www.cses.fi/*",
     "https://code-flow-rho-lemon.vercel.app/*",
     "http://localhost:5173/*"
   ],
