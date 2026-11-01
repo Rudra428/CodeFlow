@@ -27,7 +27,13 @@ export default function App() {
     const base = `cf-cloud-code-${problemKey || "scratch"}`;
     return language === "cpp" ? base : `${base}-${language}`;
   }, [language, problemKey]);
-  const [code, setCode] = useState(() => localStorage.getItem(storageKey) || LANGUAGE_TEMPLATES[language]);
+  const starterStorageKey = useMemo(() => `cf-cloud-starter-${language}`, [language]);
+  const [code, setCode] = useState(() =>
+    localStorage.getItem(storageKey)
+      || localStorage.getItem(starterStorageKey)
+      || LANGUAGE_TEMPLATES[language]
+  );
+  const [hasPersonalStarter, setHasPersonalStarter] = useState(() => Boolean(localStorage.getItem(starterStorageKey)));
   const activeStorageKey = useRef(storageKey);
   const [testCases, setTestCases] = useState([]);
   const [compilerStandard, setCompilerStandard] = useState("Detecting compiler...");
@@ -41,11 +47,16 @@ export default function App() {
   useEffect(() => {
     if (activeStorageKey.current !== storageKey) {
       activeStorageKey.current = storageKey;
-      setCode(localStorage.getItem(storageKey) || LANGUAGE_TEMPLATES[language]);
+      setCode(localStorage.getItem(storageKey)
+        || localStorage.getItem(starterStorageKey)
+        || LANGUAGE_TEMPLATES[language]);
       return;
     }
     localStorage.setItem(storageKey, code);
-  }, [storageKey, code, language]);
+  }, [storageKey, starterStorageKey, code, language]);
+  useEffect(() => {
+    setHasPersonalStarter(Boolean(localStorage.getItem(starterStorageKey)));
+  }, [starterStorageKey]);
   useEffect(() => {
     let active = true;
     const localController = new AbortController();
@@ -222,6 +233,16 @@ export default function App() {
     setLanguage(nextLanguage);
   };
 
+  const savePersonalStarter = () => {
+    localStorage.setItem(starterStorageKey, code);
+    setHasPersonalStarter(true);
+  };
+
+  const resetPersonalStarter = () => {
+    localStorage.removeItem(starterStorageKey);
+    setHasPersonalStarter(false);
+  };
+
   const submit = async () => {
     if (!problem) return;
     const platform = problem.platform || "codeforces";
@@ -286,6 +307,9 @@ export default function App() {
             diagnostics={diagnostics}
             diagnosticsStatus={diagnosticsStatus}
             language={language === "cpp" ? "cpp" : language}
+            onSaveStarter={savePersonalStarter}
+            onResetStarter={resetPersonalStarter}
+            hasPersonalStarter={hasPersonalStarter}
           />
         </section>
         <TestCaseManager
