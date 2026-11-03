@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
+import { getCppDeclaredTypes, getCppMemberEntries } from "./cppCompletion.js";
 
 export const DEFAULT_CODE = `#include <bits/stdc++.h>
 using namespace std;
@@ -221,27 +222,6 @@ const MEMBER_COMPLETIONS = {
 
 let completionProvider;
 
-function inferContainerType(source, variable) {
-  const escaped = variable.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const containerNames = Object.keys(MEMBER_COMPLETIONS)
-    .sort((left, right) => right.length - left.length)
-    .join("|");
-  const declaration = new RegExp(`(?:std::)?(${containerNames})\\s*<(?:[^<>]|<[^<>]*>)*>\\s*${escaped}\\b|(?:std::)?(string)\\s+${escaped}\\b`);
-  const match = source.match(declaration);
-  if (match?.[1] || match?.[2]) return match[1] || match[2];
-
-  const aliases = new Map();
-  const definePattern = new RegExp(`^\\s*#\\s*define\\s+([A-Za-z_]\\w*)\\s+(?:std::)?(${containerNames})\\s*<`, "gm");
-  const usingPattern = new RegExp(`\\busing\\s+([A-Za-z_]\\w*)\\s*=\\s*(?:std::)?(${containerNames})\\s*<`, "g");
-  for (const alias of source.matchAll(definePattern)) aliases.set(alias[1], alias[2]);
-  for (const alias of source.matchAll(usingPattern)) aliases.set(alias[1], alias[2]);
-  for (const [alias, container] of aliases) {
-    const aliasDeclaration = new RegExp(`(?:^|[;{}(),\\n])\\s*${alias}\\s*(?:[&*]\\s*)*${escaped}\\b`);
-    if (aliasDeclaration.test(source)) return container;
-  }
-  return null;
-}
-
 export default function EditorPane({ value, onChange, compilerStandard, diagnostics, diagnosticsStatus, language }) {
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
@@ -366,21 +346,25 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
             }))
           };
         }
-        const memberMatch = line.match(/([A-Za-z_]\w*)\.\w*$/);
+        const memberMatch = line.match(/((?:[A-Za-z_]\w*)(?:\s*(?:\[[^\]]*\]|\.\s*[A-Za-z_]\w*|->\s*[A-Za-z_]\w*))*)\s*(?:\.|->)\s*\w*$/);
         if (language === "cpp" && memberMatch) {
-          const container = inferContainerType(model.getValue(), memberMatch[1]);
-          const members = MEMBER_COMPLETIONS[container] || [];
+          const members = getCppMemberEntries(model.getValue(), memberMatch[1], MEMBER_COMPLETIONS);
           return {
-            suggestions: members.map((member) => ({
-              label: member,
-              kind: monaco.languages.CompletionItemKind.Method,
-              insertText: member,
+            suggestions: members.map(({ label, kind }) => ({
+              label,
+              kind: kind === "property"
+                ? monaco.languages.CompletionItemKind.Field
+                : monaco.languages.CompletionItemKind.Method,
+              insertText: label,
               range
             }))
           };
         }
 
         const identifiers = new Set();
+        if (language === "cpp") {
+          for (const typeName of getCppDeclaredTypes(model.getValue())) identifiers.add(typeName);
+        }
         for (const match of model.getValue().matchAll(/\b(?:auto|bool|char|double|float|int|long|short|string|size_t|[A-Z]\w*)\s+([A-Za-z_]\w*)/g)) {
           identifiers.add(match[1]);
         }
