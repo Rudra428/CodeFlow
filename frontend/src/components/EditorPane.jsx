@@ -346,7 +346,7 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
             }))
           };
         }
-        const memberMatch = line.match(/((?:[A-Za-z_]\w*)(?:\s*(?:\[[^\]]*\]|\.\s*[A-Za-z_]\w*|->\s*[A-Za-z_]\w*))*)\s*(?:\.|->)\s*\w*$/);
+        const memberMatch = line.match(/((?:[A-Za-z_]\w*)(?:\s*(?:\[[^\]]*\]|\.\s*[A-Za-z_]\w*(?:\s*\([^()]*\))?|->\s*[A-Za-z_]\w*(?:\s*\([^()]*\))?))*)\s*(?:\.|->)\s*\w*$/);
         if (language === "cpp" && memberMatch) {
           const members = getCppMemberEntries(model.getValue(), memberMatch[1], MEMBER_COMPLETIONS);
           return {
