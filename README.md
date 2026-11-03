@@ -1,108 +1,37 @@
 # CodeFlow
 
-CodeFlow is a React/Monaco coding workspace, a Manifest V3 Chrome bridge for importing Codeforces samples and submitting through your signed-in browser session, and APIs for judging C++, Python 3, and Java 17 solutions with Judge0 CE or an opt-in runner on the user's computer.
+CodeFlow is a coding workspace for solving programming problems. It brings problem examples into an online editor, lets you run your code, and helps submit it using your existing Codeforces, AtCoder, or CSES browser session.
 
-## Requirements
+Open CodeFlow: [code-flow-rho-lemon.vercel.app](https://code-flow-rho-lemon.vercel.app/)
 
-- Google Chrome or Microsoft Edge
-- Node.js 18 or later and npm
-- Python 3.9 or later
-- Internet access from the Flask backend to Judge0 CE (`https://ce.judge0.com`) when using online mode
-- `g++` on the user's computer for local C++ mode
-- Python 3 for local Python mode (the Flask Python interpreter is used)
-- JDK 17+ on the user's computer for local Java mode
+## How it works
 
-## Start the IDE
+1. The browser extension reads a supported problem and its sample tests.
+2. CodeFlow opens the problem in the editor, where you can write code and run tests.
+3. Choose online judging, or optionally install the local judge to run code on your own computer.
+4. Submit using your signed-in account on the problem site.
 
-In one terminal:
+## Get started
 
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+### 1. Install the browser extension
 
-The IDE is served at `http://localhost:5173`.
+[Download CodeFlow as a ZIP](https://github.com/Rudra428/CodeFlow/archive/refs/heads/main.zip). The ZIP contains the `cf-bridge-extension` folder. Extract the ZIP, then:
 
-In a second terminal:
+1. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
+2. Turn on **Developer mode** and select **Load unpacked**.
+3. Choose the extracted `cf-bridge-extension` folder.
+4. Sign in to Codeforces, AtCoder, or CSES, open a problem, and select the CodeFlow extension.
 
-```powershell
-cd backend
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python app.py
-```
+### 2. Use CodeFlow
 
-The API listens on `http://127.0.0.1:5000`. If PowerShell blocks activation, run `python -m pip install -r requirements.txt` with the environment's Python directly instead.
+Open the [CodeFlow editor](https://code-flow-rho-lemon.vercel.app/), choose a language, and run your code against the example tests. Sign in to the problem site before submitting. There is no separate CodeFlow account.
 
-## Run the optional local judge
+The extension supports Codeforces, AtCoder, and CSES problem pages. Online judging is ready to use without installing anything else.
 
-The recommended Windows setup is a one-time installer from the [CodeFlow GitHub Releases](https://github.com/Rudra428/CodeFlow/releases). Download `CodeFlowLocalRunner-Setup.exe` and run it. The installer explains that local execution is not sandboxed and asks you to confirm before continuing. You can optionally select **Start CodeFlow Local Runner when I sign in to Windows**. After installation, the runner starts in the notification area; right-click its icon to open CodeFlow or stop it. The runner is per-user and does not require administrator access. The installer is currently unsigned, so Windows may show a SmartScreen warning; users should download it only from the official CodeFlow GitHub release.
+## Optional: Run code on your computer
 
-The hosted IDE sends Local mode run and diagnostics requests to `127.0.0.1:4000`; these requests do not go through Render or Judge0. The installer bundles the runner and its Python dependencies. Clients need to install only the compiler(s) for languages they want to use: `g++` for C++, Python for Python, and JDK 17+ for Java. The IDE detects which supported runtimes are available.
+For Windows, [download the CodeFlow Local Runner installer](https://github.com/Rudra428/CodeFlow/releases/latest/download/CodeFlowLocalRunner-Setup.exe) and open it. Then start the runner and choose **Local runner (this device)** in CodeFlow. Install a compiler or runtime for each language you plan to use: `g++` for C++, Python for Python, or JDK 17+ for Java.
 
-For development or manual startup on Windows, install Python 3.9 or newer, then run `py -m pip install -r requirements-local.txt` and `py run_local.py` from `backend`.
+The installer is unsigned, so Windows may show a security warning. Only download it from the official link above.
 
-To build the unsigned Windows installer yourself, install Inno Setup 6 and Python 3.9 or newer, then run `.\backend\build_installer.ps1` from the repository root. Alternatively, manually dispatch the **Build Windows Local Runner** GitHub Actions workflow to download the installer build artifact. A tagged `local-runner-v*` commit creates a GitHub Release with the installer.
-
-The runner binds only to `127.0.0.1`, accepts browser requests only from the configured production or local-development CodeFlow origin, and is separate from the Render API. Chromium-based browsers may ask to grant CodeFlow local-network access the first time it contacts the runner.
-
-**Security:** local execution is not a sandbox. Programs run with the same permissions as the signed-in user and may access that user's files and network. Only run code you trust. The runner starts only after the user launches it or opts into starting it at sign-in, and the IDE displays a warning whenever Local mode is selected.
-
-## Deploy frontend and API
-
-Push the project to GitHub, then create two services from the same repository:
-
-### Backend on Render
-
-1. In Render, create a **Blueprint** using this repository and approve the `render.yaml` configuration.
-2. When prompted for `FRONTEND_ORIGINS`, enter your exact Vercel production origin (currently `https://code-flow-rho-lemon.vercel.app`, with no trailing slash).
-3. Keep `ENABLE_LOCAL_EXECUTION` set to `false`. The Render backend is used for Judge0 CE requests; local execution happens only through the separately started runner on the user's device.
-4. Wait for the `codeflow-api` service to deploy and copy its Render URL, such as `https://codeflow-api.onrender.com`.
-
-### Frontend on Vercel
-
-1. Import the same GitHub repository in Vercel and set **Root Directory** to `frontend`.
-2. Vercel should detect Vite. Use `npm run build` as the build command and `dist` as the output directory if it does not fill them automatically.
-3. Add the environment variable `VITE_BACKEND_URL` with the Render service URL (for example, `https://codeflow-api.onrender.com`, without a trailing slash), then deploy or redeploy.
-4. If your Vercel production domain changes, update Render's `FRONTEND_ORIGINS` to the new exact origin and save the change to redeploy/restart the backend.
-
-The browser extension opens `https://code-flow-rho-lemon.vercel.app` and allows messages only from that exact origin or `http://localhost:5173` for development. If your Vercel production domain changes, update the extension's `IDE_URL`, `IDE_ORIGINS`, and manifest host/content-script matches to the new exact origin. Avoid allowing arbitrary Vercel domains.
-
-When a problem link opens the IDE, the IDE retries the extension handshake briefly to tolerate slow content-script startup. If it still reports that the extension did not respond, confirm the extension is enabled and has site access for the Vercel domain, reload the extension from `chrome://extensions` (or `edge://extensions`), then reopen the problem from a supported site.
-
-## Load the Chrome extension
-
-1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge) and enable **Developer mode**.
-2. Choose **Load unpacked** and select the `cf-bridge-extension` folder.
-3. Sign in to Codeforces, AtCoder, or CSES in Chrome.
-4. Open a supported problem, then click the extension icon. The IDE opens with the problem metadata and any sample tests found on the page.
-5. Sign in to the problem site before submitting. CodeFlow uses your browser session; there is no separate account to enter.
-
-The extension supports Codeforces `/contest/{id}/problem/{index}`, `/gym/{id}/problem/{index}`, and `/problemset/problem/{id}/{index}` pages; AtCoder `/contests/{contest}/tasks/{task}` pages; and CSES `/problemset/task/{id}` pages. Problem import and sample execution work for all three sites.
-
-## Running tests and submitting
-
-- Choose C++, Python 3, or Java 17 from the language selector. Code is auto-saved per problem and language in browser local storage.
-- Compiler diagnostics use the selected language and execution mode. C++ syntax highlighting, Python and Java highlighting, bracket matching, autocomplete, and language-specific snippets are enabled.
-- Add or edit test cases in the right pane; use **Run** or **Run All Tests** to execute them.
-- The API submits each test case to Judge0 CE, returning standard output, standard error, and per-case status.
-- **Submit to Codeforces** keeps the existing flow: it opens a background tab, fills the form using your browser session, and polls the Codeforces API for a verdict.
-- **Submit to AtCoder** or **Submit to CSES** opens the site's submission page in a background tab, selects the matching available language, fills the code, and submits it. Check that platform's submissions page for the verdict; automatic verdict polling is currently Codeforces-only.
-
-## Configuration and operational safety
-
-Set `VITE_BACKEND_URL` when building/running the frontend if the API is hosted somewhere other than `http://localhost:5000`. The Flask service allows the origin or comma-separated origins configured in `FRONTEND_ORIGINS`; by default this is `http://localhost:5173`.
-
-Use **Judge0 CE (online)** or start the optional local runner and choose **Local runner (this device)**. C++ is the default language and execution mode. The runner probes `http://127.0.0.1:4000` and enables only locally installed runtimes. Judge0 discovers the newest available GCC C++, Python 3, and Java runtime. By default, it uses the public `https://ce.judge0.com` instance; set `JUDGE0_BASE_URL` to use another Judge0 CE instance. Set `JUDGE0_CPP_LANGUAGE_ID`, `JUDGE0_PYTHON_LANGUAGE_ID`, or `JUDGE0_JAVA_LANGUAGE_ID` to pin a runtime.
-
-Judge0 mode sends source and test input to the configured Judge0 CE service; the public instance may apply rate limits, queue delays, or availability restrictions. The Flask API enforces request-size and test-count limits and caps concurrent requests.
-
-Codeforces submission supports the selected language when Codeforces offers the corresponding compiler in its submission form.
-
-## Project layout
-
-- `cf-bridge-extension/` — Chrome Manifest V3 service worker and IDE content-script relay.
-- `frontend/` — React, Vite, Tailwind CSS, and Monaco IDE.
-- `backend/` — Flask API and opt-in loopback runner for Judge0 CE or local C++, Python 3, and Java execution.
+**Important:** The local judge is not sandboxed. Code you run can access your files and network with your user permissions. Run only code you trust. Local judging is optional; online judging does not require this installer.
