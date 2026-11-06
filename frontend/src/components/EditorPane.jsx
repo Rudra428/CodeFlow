@@ -257,6 +257,15 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
   const handleMount = (editor, monaco) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    monaco.editor.defineTheme("codeflow-black", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": "#000000"
+      }
+    });
+    monaco.editor.setTheme("codeflow-black");
     completionProvider?.dispose();
     const monacoLanguage = language === "cpp" ? "cpp" : language === "python" ? "python" : "java";
     const languageCompletions = language === "python"
@@ -456,7 +465,7 @@ export default function EditorPane({ value, onChange, compilerStandard, diagnost
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             tabSize: 4,
-            wordWrap: "on",
+            wordWrap: "off",
             padding: { top: 14 },
             glyphMargin: true,
             folding: true,
